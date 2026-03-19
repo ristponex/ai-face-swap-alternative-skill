@@ -70,6 +70,9 @@ def submit_request(endpoint, payload, api_key):
         print(f"API error ({resp.status_code}): {resp.text[:500]}")
         sys.exit(1)
     data = resp.json()
+    if data.get("code") and data.get("code") != 200:
+        print(f"API error: {data.get('message', 'Unknown error')}")
+        sys.exit(1)
     request_id = data.get("data", {}).get("id") or data.get("request_id")
     if not request_id:
         print(f"Unexpected response: {json.dumps(data, indent=2)}")
@@ -125,12 +128,13 @@ def cmd_swap(args):
     print(f"  Target image: {args.target}")
 
     payload = {
+        "model": "atlascloud/image-face-swap",
         "source_image": image_to_data_url(args.source),
         "target_image": image_to_data_url(args.target),
     }
 
     print("\n  Submitting face swap request...")
-    request_id = submit_request("atlascloud/image-face-swap", payload, api_key)
+    request_id = submit_request("generateImage", payload, api_key)
     print(f"  Request ID: {request_id}")
 
     outputs = poll_result(request_id, api_key)
@@ -156,10 +160,8 @@ def cmd_generate(args):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     model = args.model
-    parts = model.split("/")
-    endpoint = "/".join(parts[1:]) if len(parts) >= 3 else model
 
-    payload = {"prompt": args.prompt}
+    payload = {"model": model, "prompt": args.prompt}
     if args.size:
         payload["image_size"] = args.size
     if args.extra:
@@ -169,7 +171,7 @@ def cmd_generate(args):
     print(f"  Prompt: {args.prompt[:80]}...")
     print("\n  Submitting...")
 
-    request_id = submit_request(endpoint, payload, api_key)
+    request_id = submit_request("generateImage", payload, api_key)
     outputs = poll_result(request_id, api_key)
     if not outputs:
         print("\nNo images generated")
