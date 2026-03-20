@@ -201,7 +201,7 @@ def main():
     # AI 生成
     p = sub.add_parser("generate", help="Generate AI portraits/faces")
     p.add_argument("prompt", help="Text prompt")
-    p.add_argument("--model", default="black-forest-labs/flux-2-pro", help="Model ID")
+    p.add_argument("--model", default="google/nano-banana-2/text-to-image", help="Model ID")
     p.add_argument("--size", help="Image size")
     p.add_argument("--extra", help="Extra params as JSON")
     p.add_argument("-o", "--output", help="Output directory")
